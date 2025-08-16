@@ -446,18 +446,21 @@ elif page == "Entrada Diária":
             val_str = st.text_input("Valor total recebido (ex.: 10.249,00)", value="")
             val = parse_money_br(val_str) if val_str else 0.0
             if st.button("Dividir e Lançar"):
-                splits = compute_bucket_splits(buckets, val)
-                for s in splits:
-                    m = Movement(user_id=user_id, bucket_id=s["bucket_id"], kind="income",
-                                 amount=s["value"], description="Entrada diária", date=d)
-                    db.add(m)
-                    b = db.get(Bucket, s["bucket_id"])
-                    if b and b.user_id == user_id:
-                        b.balance += s["value"]
-                db.commit()
-                st.success("Entrada lançada e dividida entre os baldes.")
-                df = pd.DataFrame([{"Balde": s["name"], "% efetivo": s["percent_effective"], "Valor": money_br(s["value"])} for s in splits])
-                st.table(df)
+                if val <= 0:
+                    st.warning("Informe um valor maior que zero.")
+                else:
+                    splits = compute_bucket_splits(buckets, val)
+                    for s in splits:
+                        m = Movement(user_id=user_id, bucket_id=s["bucket_id"], kind="income",
+                                     amount=s["value"], description="Entrada diária", date=d)
+                        db.add(m)
+                        b = db.get(Bucket, s["bucket_id"])
+                        if b and b.user_id == user_id:
+                            b.balance += s["value"]
+                    db.commit()
+                    st.success("Entrada lançada e dividida entre os baldes.")
+                    df = pd.DataFrame([{"Balde": s["name"], "% efetivo": s["percent_effective"], "Valor": money_br(s["value"])} for s in splits])
+                    st.table(df)
 
 elif page == "Livro Caixa":
     st.title("📗 Livro Caixa")
@@ -466,11 +469,14 @@ elif page == "Livro Caixa":
         kind = st.selectbox("Tipo", ["income", "expense", "transfer"], index=0)
         buckets_all = load_buckets(db, user_id)
         ids = [b.id for b in buckets_all]
+        if not ids:
+            st.warning("Crie ao menos um balde para lançar no Livro Caixa.")
+            st.stop()
         allow_negative = st.checkbox("Permitir saldo negativo no(s) balde(s)", value=False)
 
         if kind == "transfer":
-            orig = st.selectbox("Balde de origem", ids, index=0 if ids else None)
-            dest = st.selectbox("Balde de destino", ids, index=1 if ids and len(ids)>1 else 0)
+            orig = st.selectbox("Balde de origem", ids)
+            dest = st.selectbox("Balde de destino", ids, index=0 if len(ids) < 2 else 1)
             val_str = st.text_input("Valor (R$)", value="")
             val = parse_money_br(val_str) if val_str else 0.0
             d = st.date_input("Data", value=date.today(), format="DD/MM/YY")
@@ -491,7 +497,7 @@ elif page == "Livro Caixa":
                 else:
                     st.warning("Informe um valor > 0 e selecione baldes diferentes.")
         else:
-            bucket_id = st.selectbox("Balde", ids, index=0 if ids else None)
+            bucket_id = st.selectbox("Balde", ids)
             val_str = st.text_input("Valor (R$)", value="")
             val = parse_money_br(val_str) if val_str else 0.0
             d = st.date_input("Data", value=date.today(), format="DD/MM/YY")

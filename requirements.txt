@@ -1,5 +1,7 @@
-streamlit==1.36.0
-sqlalchemy==2.0.32
-pandas==2.2.2
-pydantic==2.8.2
-python-dateutil==2.9.0.post0
+streamlit>=1.32,<2.0
+SQLAlchemy>=2.0
+pandas>=2.2
+matplotlib>=3.8
+pydantic>=2.8
+python-dateutil>=2.9
+Babel>=2.15

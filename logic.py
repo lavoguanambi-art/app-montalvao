@@ -31,3 +31,4 @@ def payoff_efficiency(giant: Giant, monthly_input: float) -> Dict:
     eff = round(1000.0 / monthly_input, 2)
     months = int((giant.total_to_pay + (monthly_input - 1)) // monthly_input)
     return {"r_per_1k": eff, "months_to_victory": months}
+    

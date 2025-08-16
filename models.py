@@ -72,3 +72,4 @@ class GiantPayment(Base):
     amount   = Column(Float, nullable=False)   # valor do aporte
     date     = Column(Date,  nullable=False)   # data do aporte
     note     = Column(String, default="")      # observação opcional
+    
